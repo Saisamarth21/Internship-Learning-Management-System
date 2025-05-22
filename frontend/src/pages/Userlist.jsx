@@ -102,7 +102,7 @@ const UserList = () => {
   useEffect(() => {
     async function load() {
       try {
-        const res = await axios.get(`${API_BASE_URL}/users`);
+        const res = await axios.get(`${API_BASE_URL}/api/users`);
         const all = initializeUsers(res.data.data);
         setMembers(
           all.filter((u) => u.userType === "members")
@@ -159,7 +159,7 @@ const UserList = () => {
     async (newUser) => {
       try {
         const res = await axios.post(
-          `${API_BASE_URL}/users/create`,
+          `${API_BASE_URL}/api/users/create`,
           newUser,
           {
             headers: {
@@ -204,7 +204,7 @@ const UserList = () => {
 
       try {
         const res = await axios.put(
-          `${API_BASE_URL}/users/${selectedUser._id}`,
+          `${API_BASE_URL}/api/users/${selectedUser._id}`,
           body
         );
         const updated = {
@@ -250,7 +250,7 @@ const UserList = () => {
   const handleDeleteConfirm = useCallback(async () => {
     try {
       await axios.delete(
-        `${API_BASE_URL}/users/${selectedUser._id}`
+        `${API_BASE_URL}/api/users/${selectedUser._id}`
       );
       if (userType === "members") {
         setMembers((m) =>
