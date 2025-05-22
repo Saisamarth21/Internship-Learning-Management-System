@@ -9,7 +9,6 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=http://your-vps-ip:4000/api
     depends_on:
       - backend
     networks:
