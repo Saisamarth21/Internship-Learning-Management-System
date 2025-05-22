@@ -102,7 +102,7 @@ const UserList = () => {
     async function load() {
       try {
         const res = await axios.get(
-          "http://localhost:3000/api/users"
+          "http://localhost:4000/api/users"
         );
         const all = initializeUsers(res.data.data);
         setMembers(
@@ -160,7 +160,7 @@ const UserList = () => {
     async (newUser) => {
       try {
         const res = await axios.post(
-          "http://localhost:3000/api/users/create",
+          "http://localhost:4000/api/users/create",
           newUser,
           {
             headers: {
@@ -205,7 +205,7 @@ const UserList = () => {
 
       try {
         const res = await axios.put(
-          `http://localhost:3000/api/users/${selectedUser._id}`,
+          `http://localhost:4000/api/users/${selectedUser._id}`,
           body
         );
         const updated = {
@@ -251,7 +251,7 @@ const UserList = () => {
   const handleDeleteConfirm = useCallback(async () => {
     try {
       await axios.delete(
-        `http://localhost:3000/api/users/${selectedUser._id}`
+        `http://localhost:4000/api/users/${selectedUser._id}`
       );
       if (userType === "members") {
         setMembers((m) =>

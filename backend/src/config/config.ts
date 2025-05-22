@@ -7,7 +7,7 @@ interface AppConfig {
 }
 
 const _config: AppConfig = {
-  port: Number(process.env.PORT) || 3000,
+  port: Number(process.env.PORT) || 4000,
   mongoUri: process.env.MONGODB_URI || '',
 };
 
