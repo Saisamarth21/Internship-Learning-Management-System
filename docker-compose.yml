@@ -13,6 +13,8 @@ services:
       - backend
     networks:
       - lms-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   backend:
     build: 
