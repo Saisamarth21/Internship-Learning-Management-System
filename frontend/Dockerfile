@@ -8,6 +8,13 @@ RUN npm install
 
 COPY . .
 
+# Build the app
+RUN npm run build
+
+# Install serve to run the production build
+RUN npm install -g serve
+
 EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host"] 
+# Start the app
+CMD ["serve", "-s", "dist", "-l", "5173"] 
