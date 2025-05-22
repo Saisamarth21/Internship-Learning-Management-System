@@ -21,6 +21,7 @@ import {
   FiMoreVertical,
 } from "react-icons/fi";
 import { useSelector } from "react-redux";
+import API_BASE_URL from "../config/api";
 
 // Ensure each user has a stable `id`
 const initializeUsers = (users) =>
@@ -101,9 +102,7 @@ const UserList = () => {
   useEffect(() => {
     async function load() {
       try {
-        const res = await axios.get(
-          "http://localhost:4000/api/users"
-        );
+        const res = await axios.get(`${API_BASE_URL}/users`);
         const all = initializeUsers(res.data.data);
         setMembers(
           all.filter((u) => u.userType === "members")
@@ -160,7 +159,7 @@ const UserList = () => {
     async (newUser) => {
       try {
         const res = await axios.post(
-          "http://localhost:4000/api/users/create",
+          `${API_BASE_URL}/users/create`,
           newUser,
           {
             headers: {
@@ -205,7 +204,7 @@ const UserList = () => {
 
       try {
         const res = await axios.put(
-          `http://localhost:4000/api/users/${selectedUser._id}`,
+          `${API_BASE_URL}/users/${selectedUser._id}`,
           body
         );
         const updated = {
@@ -251,7 +250,7 @@ const UserList = () => {
   const handleDeleteConfirm = useCallback(async () => {
     try {
       await axios.delete(
-        `http://localhost:4000/api/users/${selectedUser._id}`
+        `${API_BASE_URL}/users/${selectedUser._id}`
       );
       if (userType === "members") {
         setMembers((m) =>
