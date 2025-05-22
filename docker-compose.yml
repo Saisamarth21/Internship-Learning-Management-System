@@ -1,21 +1,19 @@
 version: '3.8'
-
 services:
   frontend:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://backend:4000       # <-- use the *service name* on the same network
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=http://your-vps-ip:4000
     depends_on:
       - backend
     networks:
       - lms-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   backend:
     build: 
