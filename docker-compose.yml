@@ -1,22 +1,21 @@
 version: '3.8'
+
 services:
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://backend:4000       # <-- use the *service name* on the same network
+        VITE_API_URL: http://backend:4000
     ports:
       - "5173:5173"
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - backend
     networks:
       - lms-network
+    depends_on:
+      - backend
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
@@ -24,10 +23,10 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/lms
       - PORT=4000
-    depends_on:
-      - mongodb
     networks:
       - lms-network
+    depends_on:
+      - mongodb
 
   mongodb:
     image: mongo:latest
@@ -43,4 +42,4 @@ networks:
     driver: bridge
 
 volumes:
-  mongodb_data: 
+  mongodb_data:
