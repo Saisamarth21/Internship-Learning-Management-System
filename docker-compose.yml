@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   frontend:
+    image: your-dockerhub-username/lms-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -15,13 +16,14 @@ services:
       - backend
 
   backend:
+    image: your-dockerhub-username/lms-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "4000:4000"
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/lms
+      - MONGODB_URI=mongodb://lms_user:lms_password@mongodb:27017/lms?authSource=admin
       - PORT=4000
     networks:
       - lms-network
@@ -32,6 +34,9 @@ services:
     image: mongo:latest
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=lms_user
+      - MONGO_INITDB_ROOT_PASSWORD=lms_password
     volumes:
       - mongodb_data:/data/db
     networks:
