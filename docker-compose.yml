@@ -2,12 +2,9 @@ version: '3.8'
 
 services:
   frontend:
-    image: your-dockerhub-username/lms-frontend:latest
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://backend:4000
+    image: saisamarth21/lms-frontend:latest
+    environment:
+      - VITE_API_URL=http://localhost:4000
     ports:
       - "5173:5173"
     networks:
@@ -16,15 +13,13 @@ services:
       - backend
 
   backend:
-    image: your-dockerhub-username/lms-backend:latest
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: saisamarth21/lms-backend:latest
     ports:
       - "4000:4000"
     environment:
       - MONGODB_URI=mongodb://lms_user:lms_password@mongodb:27017/lms?authSource=admin
       - PORT=4000
+      - NODE_ENV=production
     networks:
       - lms-network
     depends_on:
@@ -41,6 +36,7 @@ services:
       - mongodb_data:/data/db
     networks:
       - lms-network
+    restart: always
 
 networks:
   lms-network:
