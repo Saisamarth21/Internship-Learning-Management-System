@@ -2,45 +2,39 @@ version: '3.8'
 
 services:
   frontend:
-    image: saisamarth21/lms-frontend:latest
-    environment:
-      - VITE_API_URL=http://140.238.250.199:4000
+    build: ./frontend
     ports:
       - "5173:5173"
-    networks:
-      - lms-network
     depends_on:
       - backend
-
-  backend:
-    image: saisamarth21/lms-backend:latest
-    ports:
-      - "4000:4000"
-    environment:
-      - MONGODB_URI=mongodb://lms_user:lms_password@mongodb:27017/lms?authSource=admin
-      - PORT=4000
-      - NODE_ENV=production
     networks:
       - lms-network
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGO_CONNECTION_URL=mongodb://mongodb:27017/lms
+      - JWT_SECRET=your_jwt_secret_here
     depends_on:
       - mongodb
+    networks:
+      - lms-network
 
   mongodb:
     image: mongo:latest
     ports:
       - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=lms_user
-      - MONGO_INITDB_ROOT_PASSWORD=lms_password
     volumes:
       - mongodb_data:/data/db
     networks:
       - lms-network
-    restart: always
 
 networks:
   lms-network:
     driver: bridge
 
 volumes:
-  mongodb_data:
+  mongodb_data: 
