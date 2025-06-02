@@ -1,7 +1,23 @@
 import axios from 'axios';
 
+// Determine the base URL based on the environment
+const getBaseUrl = () => {
+    // If we're in a browser environment
+    if (typeof window !== 'undefined') {
+        // Use the current hostname without port for domain
+        const hostname = window.location.hostname;
+        if (hostname === 'lms.saisamarth.duckdns.org') {
+            return 'http://lms.saisamarth.duckdns.org/api';
+        }
+        // Use IP with port for direct IP access
+        return `http://${hostname}:4000/api`;
+    }
+    // Fallback for server-side or development
+    return 'http://backend:4000/api';
+};
+
 const api = axios.create({
-    baseURL: 'http://backend:4000/api'
+    baseURL: getBaseUrl()
 });
 
 // Add token to requests

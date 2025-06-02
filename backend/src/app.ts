@@ -14,9 +14,14 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: '*',
+    origin: [
+        'http://localhost:5173',
+        'http://140.238.250.199:5173',
+        'http://lms.saisamarth.duckdns.org'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 app.use(express.json());
 
