@@ -6,6 +6,7 @@ import userRoutes from './routes/user.routes';
 import authRoutes from './routes/authRoutes';
 import profileRoutes from './routes/profileRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
+import { connectDatabase } from './config/db';
 
 dotenv.config();
 
@@ -20,9 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myapp')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+connectDatabase();
 
 // Routes
 app.use('/api/auth', authRoutes);
