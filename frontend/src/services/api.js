@@ -4,7 +4,12 @@ import axios from 'axios';
 const getBaseUrl = () => {
     // If we're in a browser environment
     if (typeof window !== 'undefined') {
-        // Always use the IP with port for API calls
+        // Check if we're accessing through HTTPS domain
+        if (window.location.protocol === 'https:') {
+            // Use IP with port for API calls
+            return 'http://140.238.250.199:4000/api';
+        }
+        // For direct IP access
         return 'http://140.238.250.199:4000/api';
     }
     // Fallback for server-side or development
