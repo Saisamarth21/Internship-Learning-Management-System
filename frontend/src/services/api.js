@@ -4,14 +4,24 @@ import axios from 'axios';
 const getBaseUrl = () => {
     // If we're in a browser environment
     if (typeof window !== 'undefined') {
-        // Check if we're accessing through HTTPS domain
-        if (window.location.protocol === 'https:') {
-            // Use IP with port for API calls
+        const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
+        
+        // If accessing through domain
+        if (hostname === 'lms.saisamarth.duckdns.org') {
+            // Use IP for API calls when accessed through domain
             return 'http://140.238.250.199:4000/api';
         }
-        // For direct IP access
-        return 'http://140.238.250.199:4000/api';
+        
+        // If accessing through IP
+        if (hostname === '140.238.250.199') {
+            return 'http://140.238.250.199:4000/api';
+        }
+        
+        // For localhost
+        return 'http://localhost:4000/api';
     }
+    
     // Fallback for server-side or development
     return 'http://backend:4000/api';
 };
