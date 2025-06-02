@@ -32,9 +32,20 @@ services:
     networks:
       - lms-network
 
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    depends_on:
+      - mongodb
+    networks:
+      - lms-network
+
 networks:
   lms-network:
     driver: bridge
 
 volumes:
-  mongodb_data: 
+  mongodb_data:
