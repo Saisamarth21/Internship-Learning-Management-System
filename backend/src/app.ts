@@ -17,7 +17,8 @@ app.use(cors({
     origin: [
         'http://localhost:5173',
         'http://140.238.250.199:5173',
-        'http://lms.saisamarth.duckdns.org'
+        'http://lms.saisamarth.duckdns.org',
+        'http://saisamarth.duckdns.org'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
