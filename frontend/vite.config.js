@@ -11,6 +11,7 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '140.238.250.199',
+      '129.154.250.255',
       'lms.saisamarth.duckdns.org',
       'saisamarth.duckdns.org'
     ],
@@ -18,7 +19,7 @@ export default defineConfig({
       usePolling: true
     },
     hmr: {
-      host: '140.238.250.199',
+      host: process.env.HOST || '0.0.0.0',
       port: 5173
     }
   }

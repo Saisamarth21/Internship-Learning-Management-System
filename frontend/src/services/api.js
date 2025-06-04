@@ -9,13 +9,13 @@ const getBaseUrl = () => {
         
         // If accessing through domain
         if (hostname === 'lms.saisamarth.duckdns.org') {
-            // Use IP for API calls when accessed through domain
-            return 'http://140.238.250.199:4000/api';
+            // Use the current server's IP for API calls when accessed through domain
+            return `http://${window.location.hostname}:4000/api`;
         }
         
         // If accessing through IP
-        if (hostname === '140.238.250.199') {
-            return 'http://140.238.250.199:4000/api';
+        if (hostname === '140.238.250.199' || hostname === '129.154.250.255') {
+            return `http://${hostname}:4000/api`;
         }
         
         // For localhost
