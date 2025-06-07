@@ -1,23 +1,23 @@
 pipeline {
   agent any
 
-  // Prevent Declarative Pipeline's automatic checkout scm
+  // Skip the automatic "checkout scm" so we only checkout once
   options {
     skipDefaultCheckout()
   }
 
-  // Make NodeJS (and thus npm) available
+  // Make node & npm available
   tools {
     nodejs 'NodeJS'
   }
 
   environment {
-    // SonarQube settings
+    // SonarQube project key & token
     SONAR_PROJECT_KEY  = 'learning-management-system'
     SONAR_TOKEN        = credentials('SonarCred')
-    // OWASP Dependency-Check tool
+
+    // Tool installations (names must match Global Tool Configuration)
     OWASP_CLI_HOME     = tool 'OWASP-Dependency-Check'
-    // Sonar Scanner tool
     SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
   }
 
@@ -34,7 +34,7 @@ pipeline {
       steps {
         dir('frontend') {
           echo 'Installing & building frontend...'
-          sh 'npm ci'             // now node & npm exist
+          sh 'npm ci'
           sh 'npm run build'
         }
         dir('backend') {
@@ -47,15 +47,20 @@ pipeline {
     stage('OWASP Dependency Check') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          // Use -o so the output folder is created if missing
+          // Ensure the output folder exists
+          sh 'mkdir -p dependency-check-report'
+
+          // Run the scan
           sh """
             ${OWASP_CLI_HOME}/bin/dependency-check.sh \
               --project "${SONAR_PROJECT_KEY}" \
               --scan . \
               --format XML \
               --format HTML \
-              -o dependency-check-report
+              --out dependency-check-report
           """
+
+          // Publish the XML report without failing the build
           dependencyCheckPublisher(
             pattern: 'dependency-check-report/dependency-check-report.xml',
             stopBuild: false
@@ -67,8 +72,8 @@ pipeline {
     stage('SonarQube Analysis') {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
-        // Must exactly match your SonarQube server name
-        withSonarQubeEnv('SonarQube') {
+        // 👇 Replace this with your actual SonarQube server name
+        withSonarQubeEnv('<YOUR_SONARQUBE_SERVER_NAME>') {
           sh """
             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -80,6 +85,7 @@ pipeline {
       }
       post {
         always {
+          // Wait up to 5 minutes for Quality Gate results
           timeout(time: 5, unit: 'MINUTES') {
             waitForQualityGate abortPipeline: true
           }
