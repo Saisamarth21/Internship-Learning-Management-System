@@ -1,14 +1,12 @@
 pipeline {
   agent any
 
-  tools {
-    // If you have NodeJS configured as a tool in Jenkins, uncomment this:
-    // nodejs 'NodeJS'
-  }
-
   environment {
+    // Your project key in SonarQube
     SONAR_PROJECT_KEY  = 'learning-management-system'
+    // Jenkins credential with your Sonar token
     SONAR_TOKEN        = credentials('SonarCred')
+    // Tool installations (must match names in Global Tool Config)
     OWASP_CLI_HOME     = tool 'OWASP-Dependency-Check'
     SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
   }
@@ -39,7 +37,7 @@ pipeline {
     stage('OWASP Dependency Check') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          // Use -o (not --out) so the directory gets created
+          // Use -o so the output directory is created
           sh """
             ${OWASP_CLI_HOME}/bin/dependency-check.sh \
               --project "${SONAR_PROJECT_KEY}" \
@@ -59,7 +57,8 @@ pipeline {
     stage('SonarQube Analysis') {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
-        withSonarQubeEnv('<SONAR_SERVER_NAME>') {   // <-- REPLACE this
+        // Make sure the name here matches your SonarQube server entry
+        withSonarQubeEnv('SonarQube') {
           sh """
             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
