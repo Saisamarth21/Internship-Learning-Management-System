@@ -1,22 +1,15 @@
 pipeline {
   agent any
 
-  // Skip the automatic "checkout scm" so we only checkout once
-  options {
-    skipDefaultCheckout()
-  }
+  // Don’t do the automatic checkout step twice
+  options { skipDefaultCheckout() }
 
   // Make node & npm available
-  tools {
-    nodejs 'NodeJS'
-  }
+  tools { nodejs 'NodeJS' }
 
   environment {
-    // SonarQube project key & token
     SONAR_PROJECT_KEY  = 'learning-management-system'
     SONAR_TOKEN        = credentials('SonarCred')
-
-    // Tool installations (names must match Global Tool Configuration)
     OWASP_CLI_HOME     = tool 'OWASP-Dependency-Check'
     SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
   }
@@ -33,12 +26,10 @@ pipeline {
     stage('Install & Build') {
       steps {
         dir('frontend') {
-          echo 'Installing & building frontend...'
           sh 'npm ci'
           sh 'npm run build'
         }
         dir('backend') {
-          echo 'Installing backend dependencies...'
           sh 'npm ci'
         }
       }
@@ -47,20 +38,17 @@ pipeline {
     stage('OWASP Dependency Check') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          // Ensure the output folder exists
+          // prep output folder
           sh 'mkdir -p dependency-check-report'
-
-          // Run the scan
+          // run the scan; ignore any non-zero exit (dotnet / Yarn errors)
           sh """
             ${OWASP_CLI_HOME}/bin/dependency-check.sh \
               --project "${SONAR_PROJECT_KEY}" \
               --scan . \
               --format XML \
               --format HTML \
-              --out dependency-check-report
+              --out dependency-check-report || true
           """
-
-          // Publish the XML report without failing the build
           dependencyCheckPublisher(
             pattern: 'dependency-check-report/dependency-check-report.xml',
             stopBuild: false
@@ -72,8 +60,8 @@ pipeline {
     stage('SonarQube Analysis') {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
-        // 👇 Replace this with your actual SonarQube server name
-        withSonarQubeEnv('<YOUR_SONARQUBE_SERVER_NAME>') {
+        // “SonarQube” must exactly match your Configure System entry
+        withSonarQubeEnv('SonarQube') {
           sh """
             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -85,7 +73,6 @@ pipeline {
       }
       post {
         always {
-          // Wait up to 5 minutes for Quality Gate results
           timeout(time: 5, unit: 'MINUTES') {
             waitForQualityGate abortPipeline: true
           }
