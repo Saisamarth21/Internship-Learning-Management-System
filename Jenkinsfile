@@ -1,11 +1,13 @@
 pipeline {
   agent any
 
-  // Don’t do the automatic checkout step twice
-  options { skipDefaultCheckout() }
+  options {
+    skipDefaultCheckout()
+  }
 
-  // Make node & npm available
-  tools { nodejs 'NodeJS' }
+  tools {
+    nodejs 'NodeJS'                      // your NodeJS tool installation
+  }
 
   environment {
     SONAR_PROJECT_KEY  = 'learning-management-system'
@@ -38,9 +40,7 @@ pipeline {
     stage('OWASP Dependency Check') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          // prep output folder
           sh 'mkdir -p dependency-check-report'
-          // run the scan; ignore any non-zero exit (dotnet / Yarn errors)
           sh """
             ${OWASP_CLI_HOME}/bin/dependency-check.sh \
               --project "${SONAR_PROJECT_KEY}" \
@@ -60,8 +60,8 @@ pipeline {
     stage('SonarQube Analysis') {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
-        // “SonarQube” must exactly match your Configure System entry
-        withSonarQubeEnv('SonarQube') {
+        // Use your SonarQube *server* configuration name here:
+        withSonarQubeEnv('SonarQube-Scanner') {
           sh """
             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
