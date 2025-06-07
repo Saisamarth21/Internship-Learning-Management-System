@@ -1,13 +1,23 @@
 pipeline {
   agent any
 
+  // Prevent Declarative Pipeline's automatic checkout scm
+  options {
+    skipDefaultCheckout()
+  }
+
+  // Make NodeJS (and thus npm) available
+  tools {
+    nodejs 'NodeJS'
+  }
+
   environment {
-    // Your project key in SonarQube
+    // SonarQube settings
     SONAR_PROJECT_KEY  = 'learning-management-system'
-    // Jenkins credential with your Sonar token
     SONAR_TOKEN        = credentials('SonarCred')
-    // Tool installations (must match names in Global Tool Config)
+    // OWASP Dependency-Check tool
     OWASP_CLI_HOME     = tool 'OWASP-Dependency-Check'
+    // Sonar Scanner tool
     SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
   }
 
@@ -24,7 +34,7 @@ pipeline {
       steps {
         dir('frontend') {
           echo 'Installing & building frontend...'
-          sh 'npm ci'
+          sh 'npm ci'             // now node & npm exist
           sh 'npm run build'
         }
         dir('backend') {
@@ -37,7 +47,7 @@ pipeline {
     stage('OWASP Dependency Check') {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          // Use -o so the output directory is created
+          // Use -o so the output folder is created if missing
           sh """
             ${OWASP_CLI_HOME}/bin/dependency-check.sh \
               --project "${SONAR_PROJECT_KEY}" \
@@ -57,7 +67,7 @@ pipeline {
     stage('SonarQube Analysis') {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
-        // Make sure the name here matches your SonarQube server entry
+        // Must exactly match your SonarQube server name
         withSonarQubeEnv('SonarQube') {
           sh """
             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
