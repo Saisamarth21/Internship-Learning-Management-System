@@ -6,7 +6,7 @@ pipeline {
   }
 
   tools {
-    nodejs 'NodeJS'                      // your NodeJS tool installation
+    nodejs 'NodeJS'
   }
 
   environment {
@@ -60,7 +60,6 @@ pipeline {
     stage('SonarQube Analysis') {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
-        // Use your SonarQube *server* configuration name here:
         withSonarQubeEnv('SonarQube-Scanner') {
           sh """
             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
@@ -75,6 +74,29 @@ pipeline {
         always {
           timeout(time: 5, unit: 'MINUTES') {
             waitForQualityGate abortPipeline: true
+          }
+        }
+      }
+    }
+
+    stage('Build Docker Images') {
+      when { expression { currentBuild.currentResult == 'SUCCESS' } }
+      steps {
+        script {
+          // Tags with build number
+          def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
+          def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
+
+          // Build frontend image
+          dir('frontend') {
+            echo "Building Docker image ${feTag}"
+            frontendImage = docker.build(feTag, ".")
+          }
+
+          // Build backend image
+          dir('backend') {
+            echo "Building Docker image ${beTag}"
+            backendImage = docker.build(beTag, ".")
           }
         }
       }
