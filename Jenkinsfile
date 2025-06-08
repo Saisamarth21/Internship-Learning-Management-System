@@ -196,13 +196,14 @@ pipeline {
   post {
     success {
       emailext(
-        attachLog:         true,
+        from: "saisamarth2104@gmail.com", // Replace with the actual working address
+        attachLog: true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
           trivy-frontend-report.txt,
           trivy-backend-report.txt''',
-        to:      'saisamarthu@gmail.com',
+        to: 'saisamarthu@gmail.com',
         subject: "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
         mimeType: 'text/html',
         body: """
@@ -219,13 +220,14 @@ pipeline {
     }
     failure {
       emailext(
-        attachLog:         true,
+        from: "saisamarth2104@gmail.com", // Replace with the actual working address
+        attachLog: true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
           trivy-frontend-report.txt,
           trivy-backend-report.txt''',
-        to:      'saisamarthu@gmail.com',
+        to: 'saisamarthu@gmail.com',
         subject: "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
         mimeType: 'text/html',
         body: """
