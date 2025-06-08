@@ -83,17 +83,14 @@ pipeline {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
         script {
-          // Compose the tags
           def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
           def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
-          // Build the frontend image
           dir('frontend') {
             echo "Building Docker image ${feTag}"
             docker.build(feTag, ".")
           }
 
-          // Build the backend image
           dir('backend') {
             echo "Building Docker image ${beTag}"
             docker.build(beTag, ".")
@@ -106,30 +103,21 @@ pipeline {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
         script {
-          // Recompute tags
           def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
           def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
-          // Scan frontend image
           echo "Scanning ${feTag} with Trivy"
           sh """
-            trivy \
-              --severity HIGH,CRITICAL \
-              --no-progress \
-              image \
-              --format table \
+            trivy --severity HIGH,CRITICAL --no-progress \
+              image --format table \
               --output trivy-frontend-report.txt \
               ${feTag}
           """
 
-          // Scan backend image
           echo "Scanning ${beTag} with Trivy"
           sh """
-            trivy \
-              --severity HIGH,CRITICAL \
-              --no-progress \
-              image \
-              --format table \
+            trivy --severity HIGH,CRITICAL --no-progress \
+              image --format table \
               --output trivy-backend-report.txt \
               ${beTag}
           """
@@ -141,5 +129,24 @@ pipeline {
         }
       }
     }
+
+    stage('Push to Docker Hub') {
+      when { expression { currentBuild.currentResult == 'SUCCESS' } }
+      steps {
+        script {
+          def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
+          def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
+
+          docker.withRegistry('', 'DockerCred') {
+            echo "Pushing ${feTag} to Docker Hub"
+            docker.image(feTag).push()
+            echo "Pushing ${beTag} to Docker Hub"
+            docker.image(beTag).push()
+          }
+        }
+      }
+    }
+
+    // ... subsequent stages like K8s manifest commit, cleanup, notifications ...
   }
 }
