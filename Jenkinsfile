@@ -152,7 +152,6 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'GithubCred', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')]) {
           script {
-            // Clone the manifests repo
             dir('k8s-manifests') {
               checkout([
                 $class: 'GitSCM',
@@ -164,23 +163,18 @@ pipeline {
                 extensions: [[ $class: 'LocalBranch', localBranch: 'main' ]]
               ])
 
-              // Define new tags
               def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
               def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
-              // Update frontend-deployment.yaml
               sh """
                 sed -i 's#image: saisamarth21/lms-frontend:.*#image: ${feTag}#' \
                   K8s-lms-site/frontend-deployment.yaml
               """
-
-              // Update backend-deployment.yaml
               sh """
                 sed -i 's#image: saisamarth21/lms-backend:.*#image: ${beTag}#' \
                   K8s-lms-site/backend-deployment.yaml
               """
 
-              // Commit & push changes
               sh """
                 git config user.email "jenkins@your.domain"
                 git config user.name  "Jenkins CI"
@@ -191,6 +185,23 @@ pipeline {
               """
             }
           }
+        }
+      }
+    }
+
+    stage('Cleanup') {
+      when { expression { currentBuild.currentResult == 'SUCCESS' } }
+      steps {
+        script {
+          def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
+          def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
+
+          echo "Removing local images ${feTag} and ${beTag}"
+          sh "docker rmi ${feTag} || true"
+          sh "docker rmi ${beTag} || true"
+
+          // Optionally clean out the workspace entirely:
+          // cleanWs()
         }
       }
     }
