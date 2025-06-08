@@ -145,7 +145,6 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'GithubCred', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')]) {
           dir('k8s-manifests') {
-            // Fetch the manifests repo
             checkout([
               $class: 'GitSCM',
               branches: [[ name: '*/main' ]],
@@ -154,13 +153,10 @@ pipeline {
                 credentialsId: 'GithubCred'
               ]]
             ])
-
-            // All the Groovy logic must live inside script { }
             script {
               def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
               def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
-              // Update the image references
               sh """
                 sed -i 's#image: saisamarth21/lms-frontend:.*#image: ${feTag}#' \
                   K8s-lms-site/frontend-deployment.yaml
@@ -170,7 +166,6 @@ pipeline {
                   K8s-lms-site/backend-deployment.yaml
               """
 
-              // Commit & push with credentials embedded in the remote URL
               sh """
                 git config user.email "jenkins@your.domain"
                 git config user.name  "Jenkins CI"
@@ -202,6 +197,7 @@ pipeline {
   post {
     success {
       emailext(
+        credentialsId: 'Gmail',                 // ← your SMTP credential ID
         attachLog: true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
@@ -226,6 +222,7 @@ pipeline {
     }
     failure {
       emailext(
+        credentialsId: 'Gmail',                 // ← and here
         attachLog: true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
