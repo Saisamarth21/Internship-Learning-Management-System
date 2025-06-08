@@ -138,15 +138,61 @@ pipeline {
           def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
           docker.withRegistry('', 'DockerCred') {
-            echo "Pushing ${feTag} to Docker Hub"
+            echo "Pushing ${feTag}"
             docker.image(feTag).push()
-            echo "Pushing ${beTag} to Docker Hub"
+            echo "Pushing ${beTag}"
             docker.image(beTag).push()
           }
         }
       }
     }
 
-    // ... subsequent stages like K8s manifest commit, cleanup, notifications ...
+    stage('Update Kubernetes Manifests') {
+      when { expression { currentBuild.currentResult == 'SUCCESS' } }
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'GithubCred', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')]) {
+          script {
+            // Clone the manifests repo
+            dir('k8s-manifests') {
+              checkout([
+                $class: 'GitSCM',
+                branches: [[ name: '*/main' ]],
+                userRemoteConfigs: [[
+                  url:           'https://github.com/Saisamarth21/Kubernetes-Manifest-Files.git',
+                  credentialsId: 'GithubCred'
+                ]],
+                extensions: [[ $class: 'LocalBranch', localBranch: 'main' ]]
+              ])
+
+              // Define new tags
+              def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
+              def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
+
+              // Update frontend-deployment.yaml
+              sh """
+                sed -i 's#image: saisamarth21/lms-frontend:.*#image: ${feTag}#' \
+                  K8s-lms-site/frontend-deployment.yaml
+              """
+
+              // Update backend-deployment.yaml
+              sh """
+                sed -i 's#image: saisamarth21/lms-backend:.*#image: ${beTag}#' \
+                  K8s-lms-site/backend-deployment.yaml
+              """
+
+              // Commit & push changes
+              sh """
+                git config user.email "jenkins@your.domain"
+                git config user.name  "Jenkins CI"
+                git remote set-url origin https://${GIT_USER}:${GIT_PAT}@github.com/Saisamarth21/Kubernetes-Manifest-Files.git
+                git add K8s-lms-site/frontend-deployment.yaml K8s-lms-site/backend-deployment.yaml
+                git commit -m "Update images to ${feTag} & ${beTag}"
+                git push origin main
+              """
+            }
+          }
+        }
+      }
+    }
   }
 }
