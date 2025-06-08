@@ -83,21 +83,61 @@ pipeline {
       when { expression { currentBuild.currentResult == 'SUCCESS' } }
       steps {
         script {
-          // Tags with build number
+          // Compose the tags
           def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
           def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
-          // Build frontend image
+          // Build the frontend image
           dir('frontend') {
             echo "Building Docker image ${feTag}"
-            frontendImage = docker.build(feTag, ".")
+            docker.build(feTag, ".")
           }
 
-          // Build backend image
+          // Build the backend image
           dir('backend') {
             echo "Building Docker image ${beTag}"
-            backendImage = docker.build(beTag, ".")
+            docker.build(beTag, ".")
           }
+        }
+      }
+    }
+
+    stage('Trivy Scan Images') {
+      when { expression { currentBuild.currentResult == 'SUCCESS' } }
+      steps {
+        script {
+          // Recompute tags
+          def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
+          def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
+
+          // Scan frontend image
+          echo "Scanning ${feTag} with Trivy"
+          sh """
+            trivy \
+              --severity HIGH,CRITICAL \
+              --no-progress \
+              image \
+              --format table \
+              --output trivy-frontend-report.txt \
+              ${feTag}
+          """
+
+          // Scan backend image
+          echo "Scanning ${beTag} with Trivy"
+          sh """
+            trivy \
+              --severity HIGH,CRITICAL \
+              --no-progress \
+              image \
+              --format table \
+              --output trivy-backend-report.txt \
+              ${beTag}
+          """
+        }
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'trivy-frontend-report.txt, trivy-backend-report.txt', fingerprint: true
         }
       }
     }
