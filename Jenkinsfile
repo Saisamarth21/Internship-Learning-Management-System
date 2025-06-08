@@ -165,7 +165,6 @@ pipeline {
                 sed -i 's#image: saisamarth21/lms-backend:.*#image: ${beTag}#' \
                   K8s-lms-site/backend-deployment.yaml
               """
-
               sh """
                 git config user.email "jenkins@your.domain"
                 git config user.name  "Jenkins CI"
@@ -197,8 +196,7 @@ pipeline {
   post {
     success {
       emailext(
-        smtpCredentialId: 'Gmail',
-        attachLog:       true,
+        attachLog:         true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
@@ -222,8 +220,7 @@ pipeline {
     }
     failure {
       emailext(
-        smtpCredentialId: 'Gmail',
-        attachLog:       true,
+        attachLog:         true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
