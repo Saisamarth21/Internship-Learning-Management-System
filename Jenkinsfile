@@ -145,36 +145,41 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'GithubCred', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')]) {
           dir('k8s-manifests') {
+            // Fetch the manifests repo
             checkout([
               $class: 'GitSCM',
               branches: [[ name: '*/main' ]],
               userRemoteConfigs: [[
                 url:           'https://github.com/Saisamarth21/Kubernetes-Manifest-Files.git',
                 credentialsId: 'GithubCred'
-              ]],
-              extensions: [[ $class: 'LocalBranch', localBranch: 'main' ]]
+              ]]
             ])
 
-            def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
-            def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
+            // All the Groovy logic must live inside script { }
+            script {
+              def feTag = "saisamarth21/lms-frontend:1.0.${env.BUILD_NUMBER}"
+              def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
-            sh """
-              sed -i 's#image: saisamarth21/lms-frontend:.*#image: ${feTag}#' \
-                K8s-lms-site/frontend-deployment.yaml
-            """
-            sh """
-              sed -i 's#image: saisamarth21/lms-backend:.*#image: ${beTag}#' \
-                K8s-lms-site/backend-deployment.yaml
-            """
+              // Update the image references
+              sh """
+                sed -i 's#image: saisamarth21/lms-frontend:.*#image: ${feTag}#' \
+                  K8s-lms-site/frontend-deployment.yaml
+              """
+              sh """
+                sed -i 's#image: saisamarth21/lms-backend:.*#image: ${beTag}#' \
+                  K8s-lms-site/backend-deployment.yaml
+              """
 
-            sh """
-              git config user.email "jenkins@your.domain"
-              git config user.name  "Jenkins CI"
-              git remote set-url origin https://${GIT_USER}:${GIT_PAT}@github.com/Saisamarth21/Kubernetes-Manifest-Files.git
-              git add K8s-lms-site/frontend-deployment.yaml K8s-lms-site/backend-deployment.yaml
-              git commit -m "Update images to ${feTag} & ${beTag}"
-              git push origin main
-            """
+              // Commit & push with credentials embedded in the remote URL
+              sh """
+                git config user.email "jenkins@your.domain"
+                git config user.name  "Jenkins CI"
+                git remote set-url origin https://${GIT_USER}:${GIT_PAT}@github.com/Saisamarth21/Kubernetes-Manifest-Files.git
+                git add K8s-lms-site/frontend-deployment.yaml K8s-lms-site/backend-deployment.yaml
+                git commit -m "Update images to ${feTag} & ${beTag}"
+                git push origin main
+              """
+            }
           }
         }
       }
@@ -214,8 +219,8 @@ pipeline {
           <p><strong>Frontend URL:</strong> <a href="http://129.154.250.255:5173/">http://129.154.250.255:5173/</a></p>
           <p><strong>API URL:</strong> <a href="http://129.154.250.255:4000/">http://129.154.250.255:4000/</a></p>
           <p><strong>MongoDB UI:</strong> <a href="http://129.154.250.255:8081/">http://129.154.250.255:8081/</a></p>
-          <p><strong>Code Repo:</strong> <a href="https://github.com/Saisamarth21/Internship-Learning-Management-System">https://github.com/Saisamarth21/Internship-Learning-Management-System</a></p>
-          <p><strong>Manifests Repo:</strong> <a href="https://github.com/Saisamarth21/Kubernetes-Manifest-Files">https://github.com/Saisamarth21/Kubernetes-Manifest-Files</a></p>
+          <p><strong>Code Repo:</strong> <a href="https://github.com/Saisamarth21/Internship-Learning-Management-System">Repo</a></p>
+          <p><strong>Manifests Repo:</strong> <a href="https://github.com/Saisamarth21/Kubernetes-Manifest-Files">Manifests</a></p>
         """
       )
     }
@@ -236,11 +241,6 @@ pipeline {
           <p><strong>Project:</strong> ${env.JOB_NAME}</p>
           <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
           <p>Please review the console output, reports, and logs for details.</p>
-          <p><strong>Frontend URL:</strong> <a href="http://129.154.250.255:5173/">http://129.154.250.255:5173/</a></p>
-          <p><strong>API URL:</strong> <a href="http://129.154.250.255:4000/">http://129.154.250.255:4000/</a></p>
-          <p><strong>MongoDB UI:</strong> <a href="http://129.154.250.255:8081/">http://129.154.250.255:8081/</a></p>
-          <p><strong>Code Repo:</strong> <a href="https://github.com/Saisamarth21/Internship-Learning-Management-System">https://github.com/Saisamarth21/Internship-Learning-Management-System</a></p>
-          <p><strong>Manifests Repo:</strong> <a href="https://github.com/Saisamarth21/Kubernetes-Manifest-Files">https://github.com/Saisamarth21/Kubernetes-Manifest-Files</a></p>
         """
       )
     }
