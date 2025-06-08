@@ -197,8 +197,8 @@ pipeline {
   post {
     success {
       emailext(
-        credentialsId: 'Gmail',                 // ← your SMTP credential ID
-        attachLog: true,
+        smtpCredentialId: 'Gmail',
+        attachLog:       true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
@@ -222,8 +222,8 @@ pipeline {
     }
     failure {
       emailext(
-        credentialsId: 'Gmail',                 // ← and here
-        attachLog: true,
+        smtpCredentialId: 'Gmail',
+        attachLog:       true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
