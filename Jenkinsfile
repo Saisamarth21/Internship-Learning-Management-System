@@ -121,7 +121,7 @@ pipeline {
       }
       post {
         always {
-          archiveArtifacts artifacts: 'trivy-frontend-report.txt, trivy-backend-report.txt', fingerprint: true
+          archiveArtifacts artifacts: 'trivy-frontend-report.txt, trivy-backend-report.txt'
         }
       }
     }
@@ -197,18 +197,43 @@ pipeline {
   post {
     success {
       emailext(
-        to:      'saisamarthu@gmail.com',
+        attachLog: true,
+        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
         from:    'saisamarthu@gmail.com',
+        to:      'saisamarthu@gmail.com',
         subject: "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
-        body:    "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} SUCCEEDED on ${env.BUILD_URL}"
+        mimeType: 'text/html',
+        body: """
+          <html>
+            <body>
+              <h2 style="color: green;">Build Succeeded!</h2>
+              <p><strong>Project:</strong> ${env.JOB_NAME}</p>
+              <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+              <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+            </body>
+          </html>
+        """
       )
     }
     failure {
       emailext(
-        to:      'saisamarthu@gmail.com',
+        attachLog: true,
+        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
         from:    'saisamarthu@gmail.com',
+        to:      'saisamarthu@gmail.com',
         subject: "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
-        body:    "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} FAILED on ${env.BUILD_URL}"
+        mimeType: 'text/html',
+        body: """
+          <html>
+            <body>
+              <h2 style="color: red;">Build Failed!</h2>
+              <p><strong>Project:</strong> ${env.JOB_NAME}</p>
+              <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+              <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+              <p>Please review the console output and attached reports for details.</p>
+            </body>
+          </html>
+        """
       )
     }
   }
