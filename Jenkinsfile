@@ -204,7 +204,6 @@ pipeline {
     success {
       emailext(
         attachLog: true,
-        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
         from:    'saisamarthu@gmail.com',
         to:      'saisamarthu@gmail.com',
         subject: "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
@@ -216,6 +215,11 @@ pipeline {
               <p><strong>Project:</strong> ${env.JOB_NAME}</p>
               <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
               <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+              <p><strong>Frontend URL:</strong> <a href="http://129.154.250.255:5173/">http://129.154.250.255:5173/</a></p>
+              <p><strong>API URL:</strong> <a href="http://129.154.250.255:4000/">http://129.154.250.255:4000/</a></p>
+              <p><strong>MongoDB UI:</strong> <a href="http://129.154.250.255:8081/">http://129.154.250.255:8081/</a></p>
+              <p><strong>Code Repo:</strong> <a href="https://github.com/Saisamarth21/Internship-Learning-Management-System">Repo</a></p>
+              <p><strong>Manifests Repo:</strong> <a href="https://github.com/Saisamarth21/Kubernetes-Manifest-Files">Manifests</a></p>
             </body>
           </html>
         """
@@ -224,7 +228,6 @@ pipeline {
     failure {
       emailext(
         attachLog: true,
-        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
         from:    'saisamarthu@gmail.com',
         to:      'saisamarthu@gmail.com',
         subject: "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
@@ -236,7 +239,7 @@ pipeline {
               <p><strong>Project:</strong> ${env.JOB_NAME}</p>
               <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
               <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-              <p>Please review the console output and attached reports for details.</p>
+              <p>Please review the console output and logs for details. Additional reports are available in the Jenkins build.</p>
             </body>
           </html>
         """
