@@ -8,6 +8,7 @@ import profileRoutes from './routes/profileRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
 import courseRoutes from './routes/courseRoutes';
 import videoRoutes from './routes/videoRoutes';
+import { connectDatabase } from './config/db';
 
 dotenv.config();
 
@@ -25,12 +26,7 @@ app.use(cors({
 app.use(express.json());
 
 // Database connection
-mongoose.connect(process.env.MONGO_CONNECTION_URL || 'mongodb://mongodb:27017/lms')
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1); // bail out
-  });
+connectDatabase();
 
 // Routes
 app.use('/api/auth', authRoutes);

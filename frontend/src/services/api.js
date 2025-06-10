@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { clearAuthData } from '../utils/auth';
 
 // Determine the base URL based on the environment
 const getBaseUrl = () => {
@@ -46,7 +45,8 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // Handle token expiration
-            clearAuthData();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -57,23 +57,12 @@ export const authAPI = {
     login: (data) => api.post('/auth/login', data),
     register: (data) => api.post('/auth/register', data),
     getProfile: () => api.get('/profile'),
-    updateProfile: (data) => {
-        // If data is FormData, don't set Content-Type header
-        if (data instanceof FormData) {
-            return api.put('/profile', data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-        }
-        return api.put('/profile', data);
-    },
+    updateProfile: (data) => api.put('/profile', data),
     updatePassword: (data) => api.put('/profile/password', data)
 };
 
 export const userAPI = {
     getUsers: () => api.get('/users'),
-    getMembers: () => api.get('/users/members'),
     createUser: (data) => api.post('/users', data),
     updateUser: (userId, data) => api.put(`/users/${userId}`, data),
     deleteUser: (userId) => api.delete(`/users/${userId}`),
