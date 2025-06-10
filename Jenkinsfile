@@ -10,10 +10,10 @@ pipeline {
   }
 
   environment {
-    SONAR_PROJECT_KEY  = 'learning-management-system'
-    SONAR_TOKEN        = credentials('SonarCred')
-    OWASP_CLI_HOME     = tool 'OWASP-Dependency-Check'
-    SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
+    SONAR_PROJECT_KEY   = 'learning-management-system'
+    SONAR_TOKEN         = credentials('SonarCred')
+    OWASP_CLI_HOME      = tool 'OWASP-Dependency-Check'
+    SONAR_SCANNER_HOME  = tool 'SonarQube-Scanner'
   }
 
   stages {
@@ -72,8 +72,10 @@ pipeline {
       }
       post {
         always {
-          timeout(time: 5, unit: 'MINUTES') {
-            waitForQualityGate abortPipeline: true
+          catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            timeout(time: 5, unit: 'MINUTES') {
+              waitForQualityGate abortPipeline: true
+            }
           }
         }
       }
@@ -89,7 +91,6 @@ pipeline {
           dir('frontend') {
             docker.build(feTag, ".")
           }
-
           dir('backend') {
             docker.build(beTag, ".")
           }
@@ -196,30 +197,18 @@ pipeline {
   post {
     success {
       emailext(
-        from:               'saisamarthu@gmail.com',
-        attachLog:          true,
-        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
-        to:                 'saisamarthu@gmail.com',
-        subject:            "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
-        mimeType:           'text/html',
-        body: """
-          <h2 style='color:green;'>Build Succeeded!</h2>
-          ...
-        """
+        to:      'saisamarthu@gmail.com',
+        from:    'saisamarthu@gmail.com',
+        subject: "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
+        body:    "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} SUCCEEDED on ${env.BUILD_URL}"
       )
     }
     failure {
       emailext(
-        from:               'saisamarthu@gmail.com',
-        attachLog:          true,
-        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
-        to:                 'saisamarthu@gmail.com',
-        subject:            "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
-        mimeType:           'text/html',
-        body: """
-          <h2 style='color:red;'>Build Failed!</h2>
-          ...
-        """
+        to:      'saisamarthu@gmail.com',
+        from:    'saisamarthu@gmail.com',
+        subject: "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
+        body:    "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} FAILED on ${env.BUILD_URL}"
       )
     }
   }
