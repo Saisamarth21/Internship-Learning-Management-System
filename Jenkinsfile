@@ -55,6 +55,11 @@ pipeline {
           )
         }
       }
+      post {
+        always {
+          sh 'ls -l dependency-check-report/'
+        }
+      }
     }
 
     stage('SonarQube Analysis') {
@@ -106,13 +111,13 @@ pipeline {
           def beTag = "saisamarth21/lms-backend:1.0.${env.BUILD_NUMBER}"
 
           sh """
-            trivy --severity HIGH,CRITICAL --no-progress \
+            trivy --no-progress \
               image --format table \
               --output trivy-frontend-report.txt \
               ${feTag}
           """
           sh """
-            trivy --severity HIGH,CRITICAL --no-progress \
+            trivy --no-progress \
               image --format table \
               --output trivy-backend-report.txt \
               ${beTag}
@@ -121,6 +126,7 @@ pipeline {
       }
       post {
         always {
+          sh 'ls -l trivy-frontend-report.txt trivy-backend-report.txt'
           archiveArtifacts artifacts: 'trivy-frontend-report.txt, trivy-backend-report.txt'
         }
       }
