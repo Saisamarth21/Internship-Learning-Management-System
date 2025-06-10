@@ -25,9 +25,12 @@ app.use(cors({
 app.use(express.json());
 
 // Database connection
-mongoose.connect(process.env.MONGO_CONNECTION_URL || 'mongodb://localhost:27017/myapp')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_CONNECTION_URL || 'mongodb://mongodb:27017/lms')
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1); // bail out
+  });
 
 // Routes
 app.use('/api/auth', authRoutes);
