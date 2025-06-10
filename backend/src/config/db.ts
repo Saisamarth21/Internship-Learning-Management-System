@@ -3,7 +3,7 @@ import { config } from './config';
 
 export async function connectDatabase(): Promise<void> {
   try {
-    await mongoose.connect(config.mongoDbConnection || 'mongodb://localhost:27017/lms', {
+    await mongoose.connect(config.mongoDbConnection as string, {
     });
     console.log('✅ MongoDB connected');
   } catch (err) {

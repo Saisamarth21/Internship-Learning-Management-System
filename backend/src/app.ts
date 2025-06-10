@@ -6,30 +6,28 @@ import userRoutes from './routes/user.routes';
 import authRoutes from './routes/authRoutes';
 import profileRoutes from './routes/profileRoutes';
 import userManagementRoutes from './routes/userManagementRoutes';
-import { connectDatabase } from './config/db';
+import courseRoutes from './routes/courseRoutes';
+import videoRoutes from './routes/videoRoutes';
 
 dotenv.config();
 
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: '*',  // Allow all origins
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range'],
-    credentials: true,
-    maxAge: 86400  // 24 hours
-}));
+app.use(cors());
 app.use(express.json());
 
 // Database connection
-connectDatabase();
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myapp')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', userManagementRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/videos', videoRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
