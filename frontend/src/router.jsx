@@ -26,54 +26,12 @@ const router = createBrowserRouter([
     element: <Home />,
     children: [
       { index: true, element: <Navigate to="dashboard" /> },
-      {
-        path: "menu",
-        element: (
-          <ProtectedRoute allowedRoles={["admins", "members"]}>
-            {({ userType }) => userType === "admins" ? <MenuPageAdmin /> : <MenuPage />}
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "dashboard",
-        element: (
-          <ProtectedRoute allowedRoles={["admins", "members"]}>
-            {({ userType }) => userType === "admins" ? <DashboardAdmin /> : <Dashboard />}
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "userlist",
-        element: (
-          <ProtectedRoute allowedRoles={["admins", "members"]}>
-            {({ userType }) => userType === "admins" ? <UserListAdmin /> : <UserList />}
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "courses/:id",
-        element: (
-          <ProtectedRoute allowedRoles={["admins", "members"]}>
-            {({ userType }) => userType === "admins" ? <CourseVideosAdmin /> : <CourseVideos />}
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "profile",
-        element: (
-          <ProtectedRoute allowedRoles={["admins", "members"]}>
-            <ProfilePage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "organisation",
-        element: (
-          <ProtectedRoute allowedRoles={["admins", "members"]}>
-            <OrganisationPage />
-          </ProtectedRoute>
-        ),
-      },
+      { path: "menu", element: <MenuPageAdmin /> },
+      { path: "dashboard", element: <DashboardAdmin /> },
+      { path: "userlist", element: <UserListAdmin /> },
+      { path: "courses/:id", element: <CourseVideosAdmin /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "organisation", element: <OrganisationPage /> },
     ],
   },
 ]);
