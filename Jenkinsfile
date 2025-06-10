@@ -193,50 +193,33 @@ pipeline {
     }
   }
 
-  post {
-    success {
-      emailext(
-        from:               'saisamarth2104@gmail.com',
-        attachLog:          true,
-        attachmentsPattern: '''
-          dependency-check-report/*.html,
-          dependency-check-report/*.xml,
-          trivy-frontend-report.txt,
-          trivy-backend-report.txt''',
-        to:                 'saisamarthu@gmail.com',
-        subject:            "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
-        mimeType:           'text/html',
-        body: """
-          <h2 style='color:green;'>Build Succeeded!</h2>
-          <p><strong>Project:</strong> ${env.JOB_NAME}</p>
-          <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
-          <p><strong>Frontend URL:</strong> <a href="http://129.154.250.255:5173/">http://129.154.250.255:5173/</a></p>
-          <p><strong>API URL:</strong> <a href="http://129.154.250.255:4000/">http://129.154.250.255:4000/</a></p>
-          <p><strong>MongoDB UI:</strong> <a href="http://129.154.250.255:8081/">http://129.154.250.255:8081/</a></p>
-          <p><strong>Code Repo:</strong> <a href="https://github.com/Saisamarth21/Internship-Learning-Management-System">Repo</a></p>
-          <p><strong>Manifests Repo:</strong> <a href="https://github.com/Saisamarth21/Kubernetes-Manifest-Files">Manifests</a></p>
-        """
-      )
-    }
-    failure {
-      emailext(
-        from:               'saisamarth2104@gmail.com',
-        attachLog:          true,
-        attachmentsPattern: '''
-          dependency-check-report/*.html,
-          dependency-check-report/*.xml,
-          trivy-frontend-report.txt,
-          trivy-backend-report.txt''',
-        to:                 'saisamarthu@gmail.com',
-        subject:            "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
-        mimeType:           'text/html',
-        body: """
-          <h2 style='color:red;'>Build Failed!</h2>
-          <p><strong>Project:</strong> ${env.JOB_NAME}</p>
-          <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
-          <p>Please review the console output, reports, and logs for details.</p>
-        """
-      )
-    }
+post {
+  success {
+    emailext(
+      from:               'saisamarthu@gmail.com',  // same as the working one
+      attachLog:          true,
+      attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
+      to:                 'saisamarthu@gmail.com',
+      subject:            "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
+      mimeType:           'text/html',
+      body: """
+        <h2 style='color:green;'>Build Succeeded!</h2>
+        ...
+      """
+    )
+  }
+  failure {
+    emailext(
+      from:               'saisamarthu@gmail.com',  // same here
+      attachLog:          true,
+      attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
+      to:                 'saisamarthu@gmail.com',
+      subject:            "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
+      mimeType:           'text/html',
+      body: """
+        <h2 style='color:red;'>Build Failed!</h2>
+        ...
+      """
+    )
   }
 }
