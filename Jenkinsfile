@@ -193,33 +193,34 @@ pipeline {
     }
   }
 
-post {
-  success {
-    emailext(
-      from:               'saisamarthu@gmail.com',  // same as the working one
-      attachLog:          true,
-      attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
-      to:                 'saisamarthu@gmail.com',
-      subject:            "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
-      mimeType:           'text/html',
-      body: """
-        <h2 style='color:green;'>Build Succeeded!</h2>
-        ...
-      """
-    )
-  }
-  failure {
-    emailext(
-      from:               'saisamarthu@gmail.com',  // same here
-      attachLog:          true,
-      attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
-      to:                 'saisamarthu@gmail.com',
-      subject:            "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
-      mimeType:           'text/html',
-      body: """
-        <h2 style='color:red;'>Build Failed!</h2>
-        ...
-      """
-    )
+  post {
+    success {
+      emailext(
+        from:               'saisamarthu@gmail.com',
+        attachLog:          true,
+        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
+        to:                 'saisamarthu@gmail.com',
+        subject:            "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
+        mimeType:           'text/html',
+        body: """
+          <h2 style='color:green;'>Build Succeeded!</h2>
+          ...
+        """
+      )
+    }
+    failure {
+      emailext(
+        from:               'saisamarthu@gmail.com',
+        attachLog:          true,
+        attachmentsPattern: 'dependency-check-report/*.html, dependency-check-report/*.xml, trivy-frontend-report.txt, trivy-backend-report.txt',
+        to:                 'saisamarthu@gmail.com',
+        subject:            "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
+        mimeType:           'text/html',
+        body: """
+          <h2 style='color:red;'>Build Failed!</h2>
+          ...
+        """
+      )
+    }
   }
 }
