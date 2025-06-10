@@ -1,8 +1,34 @@
 import axios from 'axios';
 import { clearAuthData } from '../utils/auth';
 
+// Determine the base URL based on the environment
+const getBaseUrl = () => {
+    // If we're in a browser environment
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
+        
+        // If accessing through domain
+        if (hostname === 'lms.saisamarth.duckdns.org') {
+            // Use the current server's IP for API calls when accessed through domain
+            return `http://${window.location.hostname}:4000/api`;
+        }
+        
+        // If accessing through IP
+        if (hostname === '140.238.250.199' || hostname === '129.154.250.255') {
+            return `http://${hostname}:4000/api`;
+        }
+        
+        // For localhost
+        return 'http://localhost:4000/api';
+    }
+    
+    // Fallback for server-side or development
+    return 'http://backend:4000/api';
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL + '/api'
+    baseURL: getBaseUrl()
 });
 
 // Add token to requests
