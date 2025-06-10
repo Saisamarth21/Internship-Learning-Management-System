@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { v4 as uuidv4 } from "uuid";
 import { BiEdit, BiTrash } from "react-icons/bi";
-import initialCourses from "../components/courseData.json";
+import { courseAPI } from "../services/api";
+import { toast } from "react-toastify";
 
 const pageVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -24,37 +24,60 @@ const modalVariants = {
 };
 
 const MenuPageAdmin = () => {
-  const [courses, setCourses] = useState(initialCourses);
+  const [courses, setCourses] = useState([]);
   const [newName, setNewName] = useState("");
-  const [newImage, setNewImage] = useState("");
+  const [newImage, setNewImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch courses on mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const response = await courseAPI.getCourses();
+        setCourses(response.data);
+      } catch (error) {
+        toast.error("Failed to fetch courses");
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  // Update form when editing course changes
   useEffect(() => {
     if (editingCourse) {
-      setNewName(editingCourse.name);
-      setNewImage(editingCourse.image);
+      setNewName(editingCourse.courseName);
+      setNewImage(null);
     }
   }, [editingCourse]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    setNewImage(file);
   };
 
-  const handleDeleteCourse = (id) => {
-    setCourses((prev) => prev.filter((course) => course.id !== id));
+  const handleDeleteCourse = async (id) => {
+    try {
+      await courseAPI.deleteCourse(id);
+      setCourses((prev) => prev.filter((course) => course._id !== id));
+      toast.success("Course deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete course");
+      console.error("Error deleting course:", error);
+    }
   };
 
   const openAddModal = () => {
     setEditingCourse(null);
     setNewName("");
-    setNewImage("");
+    setNewImage(null);
     setShowModal(true);
   };
 
@@ -63,33 +86,51 @@ const MenuPageAdmin = () => {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newName.trim() || !newImage) return;
+    if (!newName.trim() || (!newImage && !editingCourse)) return;
 
-    if (editingCourse) {
-      setCourses((prev) =>
-        prev.map((course) =>
-          course.id === editingCourse.id
-            ? { ...course, name: newName.trim(), image: newImage }
-            : course
-        )
-      );
-    } else {
-      const newCourse = {
-        id: uuidv4(),
-        name: newName.trim(),
-        image: newImage,
-      };
-      setCourses((prev) => [newCourse, ...prev]);
+    try {
+      const formData = new FormData();
+      formData.append("courseName", newName.trim());
+      if (newImage) {
+        formData.append("courseImage", newImage);
+      }
+
+      if (editingCourse) {
+        const response = await courseAPI.updateCourse(editingCourse._id, formData);
+        setCourses((prev) =>
+          prev.map((course) =>
+            course._id === editingCourse._id ? response.data : course
+          )
+        );
+        toast.success("Course updated successfully");
+      } else {
+        const response = await courseAPI.createCourse(formData);
+        setCourses((prev) => [response.data, ...prev]);
+        toast.success("Course created successfully");
+      }
+
+      setEditingCourse(null);
+      setNewName("");
+      setNewImage(null);
+      setShowModal(false);
+    } catch (error) {
+      toast.error(editingCourse ? "Failed to update course" : "Failed to create course");
+      console.error("Error saving course:", error);
     }
-
-    setEditingCourse(null);
-    setNewName("");
-    setNewImage("");
-    setShowModal(false);
   };
 
+  // Render loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Render main content
   return (
     <>
       <motion.div
@@ -113,24 +154,24 @@ const MenuPageAdmin = () => {
         {/* Course Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {courses.map((course) => (
-            <div key={course.id} className="relative group">
+            <div key={course._id} className="relative group">
               <Link
-                to={`/home/courses/${course.id}`}
+                to={`/home/courses/${course._id}`}
                 className="block bg-white dark:bg-slate-800 shadow-md rounded-lg overflow-hidden transform hover:scale-105 transition"
               >
                 <img
-                  src={course.image}
-                  alt={course.name}
+                  src={course.courseImage}
+                  alt={course.courseName}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-4 text-center">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {course.name}
+                    {course.courseName}
                   </h2>
                 </div>
               </Link>
 
-              {/* Edit & Delete buttons: always visible on mobile, hover-only on larger screens */}
+              {/* Edit & Delete buttons */}
               <div className="absolute top-2 right-2 flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => openEditModal(course)}
@@ -139,7 +180,7 @@ const MenuPageAdmin = () => {
                   <BiEdit size={20} />
                 </button>
                 <button
-                  onClick={() => handleDeleteCourse(course.id)}
+                  onClick={() => handleDeleteCourse(course._id)}
                   className="p-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition"
                 >
                   <BiTrash size={20} />
@@ -150,7 +191,7 @@ const MenuPageAdmin = () => {
         </div>
       </motion.div>
 
-      {/* Modal for Adding/Editing Course */}
+      {/* Add/Edit Course Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -162,14 +203,13 @@ const MenuPageAdmin = () => {
             onClick={() => {
               setShowModal(false);
               setEditingCourse(null);
+              setNewName("");
+              setNewImage(null);
             }}
           >
             <motion.div
               className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-11/12 max-w-md p-6 relative"
               variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
@@ -177,30 +217,24 @@ const MenuPageAdmin = () => {
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label
-                    htmlFor="courseName"
-                    className="block text-gray-700 dark:text-gray-300 mb-1"
-                  >
+                  <label className="block text-gray-700 dark:text-gray-300 mb-1">
                     Course Name
                   </label>
                   <input
-                    id="courseName"
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Data Structures"
+                    placeholder="Enter course name"
+                    required
                   />
                 </div>
+
                 <div>
-                  <label
-                    htmlFor="courseImage"
-                    className="block text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    {editingCourse ? "Change Image" : "Upload Image"}
+                  <label className="block text-gray-700 dark:text-gray-300 mb-1">
+                    {editingCourse ? "Change Course Image" : "Upload Course Image"}
                   </label>
                   <input
-                    id="courseImage"
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
@@ -208,13 +242,26 @@ const MenuPageAdmin = () => {
                   />
                 </div>
 
+                {editingCourse && !newImage && (
+                  <div className="mt-2">
+                    <span className="block text-gray-700 dark:text-gray-300 mb-1">
+                      Current Image:
+                    </span>
+                    <img
+                      src={editingCourse.courseImage}
+                      alt="Current Course"
+                      className="w-full h-40 object-contain border border-gray-300 dark:border-gray-600 rounded"
+                    />
+                  </div>
+                )}
+
                 {newImage && (
                   <div className="mt-2">
                     <span className="block text-gray-700 dark:text-gray-300 mb-1">
-                      Preview:
+                      Image Preview:
                     </span>
                     <img
-                      src={newImage}
+                      src={URL.createObjectURL(newImage)}
                       alt="Preview"
                       className="w-full h-40 object-contain border border-gray-300 dark:border-gray-600 rounded"
                     />
@@ -228,7 +275,7 @@ const MenuPageAdmin = () => {
                       setShowModal(false);
                       setEditingCourse(null);
                       setNewName("");
-                      setNewImage("");
+                      setNewImage(null);
                     }}
                     className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition"
                   >
