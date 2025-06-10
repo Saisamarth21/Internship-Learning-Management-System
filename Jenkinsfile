@@ -196,17 +196,16 @@ pipeline {
   post {
     success {
       emailext(
-        from:    'saisamarth2104@gmail.com',         // your Gmail address
-        credentialsId: 'Gmail',                      // your Jenkins SMTP credential
-        attachLog:      true,
+        from:               'saisamarth2104@gmail.com',
+        attachLog:          true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
           trivy-frontend-report.txt,
           trivy-backend-report.txt''',
-        to:      'saisamarthu@gmail.com',
-        subject: "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
-        mimeType: 'text/html',
+        to:                 'saisamarthu@gmail.com',
+        subject:            "✅ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Succeeded",
+        mimeType:           'text/html',
         body: """
           <h2 style='color:green;'>Build Succeeded!</h2>
           <p><strong>Project:</strong> ${env.JOB_NAME}</p>
@@ -221,17 +220,16 @@ pipeline {
     }
     failure {
       emailext(
-        from:    'saisamarth2104@gmail.com',         // your Gmail address
-        credentialsId: 'Gmail',                      // your Jenkins SMTP credential
-        attachLog:      true,
+        from:               'saisamarth2104@gmail.com',
+        attachLog:          true,
         attachmentsPattern: '''
           dependency-check-report/*.html,
           dependency-check-report/*.xml,
           trivy-frontend-report.txt,
           trivy-backend-report.txt''',
-        to:      'saisamarthu@gmail.com',
-        subject: "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
-        mimeType: 'text/html',
+        to:                 'saisamarthu@gmail.com',
+        subject:            "❌ Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} Failed",
+        mimeType:           'text/html',
         body: """
           <h2 style='color:red;'>Build Failed!</h2>
           <p><strong>Project:</strong> ${env.JOB_NAME}</p>
